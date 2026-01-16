@@ -1,0 +1,16 @@
+{
+  "name": "Cooking Diary",
+  "short_name": "Cooking Diary",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FAFAF9",
+  "theme_color": "#E5D0CC",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}

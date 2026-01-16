@@ -1,0 +1,730 @@
+/* ============================================
+   Cooking Diary - Custom Styles
+   大人可愛いラテカラーのカスタムCSS
+   ============================================ */
+
+/* ============================================
+   CSS Variables
+   ============================================ */
+:root {
+  --color-base: #FAFAF9;
+  --color-main: #E5D0CC;
+  --color-main-dark: #D4B8B2;
+  --color-accent-pink: #E8B4B8;
+  --color-accent-green: #A8C4B8;
+  --color-accent-brown: #B89F8F;
+  --color-accent-beige: #D4C4B0;
+  --color-text: #4A4A4A;
+  --color-text-light: #7A7A7A;
+
+  /* Tag Colors */
+  --tag-single: #E8A87C;
+  --tag-main: #E8B4B8;
+  --tag-side: #A8C4B8;
+  --tag-salad: #B8D4B8;
+  --tag-small: #D4C4B0;
+  --tag-other: #C8C4C0;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   Page Transitions
+   ============================================ */
+.page {
+  display: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   Navigation
+   ============================================ */
+.nav-item {
+  color: var(--color-text-light);
+  transition: color 0.2s ease;
+}
+
+.nav-item.active {
+  color: var(--color-accent-pink);
+}
+
+.nav-item:hover {
+  color: var(--color-accent-brown);
+}
+
+/* ============================================
+   Calendar Styles
+   ============================================ */
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(229, 208, 204, 0.3);
+  background-color: #FFFCFA;
+}
+
+.day-number {
+  font-family: 'Palatino', 'Palatino Linotype', serif;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.calendar-day:hover {
+  background-color: rgba(229, 208, 204, 0.3);
+}
+
+.calendar-day.today {
+  background: linear-gradient(135deg, var(--color-accent-pink), var(--color-main));
+  color: white;
+  font-weight: 500;
+}
+
+.calendar-day.has-meal {
+  background-size: cover;
+  background-position: center;
+}
+
+.calendar-day.has-meal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.calendar-day.has-meal .day-number {
+  position: relative;
+  z-index: 1;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.calendar-day.other-month {
+  opacity: 0.3;
+}
+
+.calendar-day.sunday {
+  color: var(--color-accent-pink);
+}
+
+.calendar-day.saturday {
+  color: var(--color-accent-green);
+}
+
+/* ============================================
+   Tags Styles
+   ============================================ */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  transform: scale(1.05);
+}
+
+.tag-main {
+  background-color: var(--tag-main);
+  color: #B85A5A;
+}
+
+.tag-side {
+  background-color: var(--tag-side);
+  color: #5A8B6B;
+}
+
+.tag-salad {
+  background-color: var(--tag-salad);
+  color: #4A7A4A;
+}
+
+.tag-small {
+  background-color: var(--tag-small);
+  color: #8B7355;
+}
+
+.tag-other {
+  background-color: var(--tag-other);
+  color: #6B6560;
+}
+
+/* ============================================
+   List Tab Styles
+   ============================================ */
+.list-tab {
+  background-color: rgba(229, 208, 204, 0.3);
+  color: var(--color-text-light);
+}
+
+.list-tab.active {
+  background-color: var(--color-accent-pink);
+  color: white;
+}
+
+.list-tab:hover:not(.active) {
+  background-color: rgba(229, 208, 204, 0.5);
+}
+
+/* ============================================
+   Menu List Card
+   ============================================ */
+.menu-card {
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.menu-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.menu-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.menu-card .card-info {
+  padding: 0.75rem;
+}
+
+.menu-card .card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-card .card-date {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  font-family: 'Palatino', 'Palatino Linotype', serif;
+}
+
+/* ============================================
+   Chat Styles
+   ============================================ */
+.chat-character {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 4.5rem;
+}
+
+.chat-character:hover {
+  background-color: rgba(229, 208, 204, 0.3);
+}
+
+.chat-character.active {
+  background-color: var(--color-main);
+}
+
+.chat-character .avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  background-color: var(--color-main);
+  overflow: hidden;
+}
+
+.chat-character .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-character .name {
+  font-size: 0.625rem;
+  color: var(--color-text);
+  text-align: center;
+}
+
+/* Chat Message Bubbles */
+.chat-message {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.chat-message.user {
+  flex-direction: row-reverse;
+}
+
+.chat-message .avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-main);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.chat-message .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-message .bubble {
+  max-width: 70%;
+  padding: 0.875rem 1rem;
+  border-radius: 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.chat-message.character .bubble {
+  background-color: rgba(229, 208, 204, 0.5);
+  border-bottom-left-radius: 0.25rem;
+  color: var(--color-text);
+}
+
+.chat-message.user .bubble {
+  background: linear-gradient(135deg, var(--color-accent-pink), var(--color-main));
+  border-bottom-right-radius: 0.25rem;
+  color: white;
+}
+
+/* ============================================
+   Character Icon Upload
+   ============================================ */
+.character-icon-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.character-icon-upload .icon-container {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 9999px;
+  background-color: var(--color-main);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed transparent;
+}
+
+.character-icon-upload .icon-container:hover {
+  border-color: var(--color-accent-pink);
+}
+
+.character-icon-upload .icon-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.character-icon-upload .icon-container svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-text-light);
+}
+
+.character-icon-upload .character-name {
+  font-size: 0.75rem;
+  color: var(--color-text);
+  text-align: center;
+}
+
+/* ============================================
+   Model List
+   ============================================ */
+.model-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--color-base);
+  border-radius: 0.75rem;
+}
+
+.model-item .priority {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.model-item .model-name {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  font-family: 'Palatino', 'Palatino Linotype', serif;
+}
+
+/* ============================================
+   Loading Animation
+   ============================================ */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   Toast Animation
+   ============================================ */
+.toast-show {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* ============================================
+   Recent Meals Horizontal Scroll
+   ============================================ */
+.recent-meal-card {
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.recent-meal-card img {
+  width: 100px;
+  height: 100px;
+  border-radius: 1rem;
+  object-fit: cover;
+}
+
+.recent-meal-card .date {
+  font-size: 0.625rem;
+  color: var(--color-text-light);
+  text-align: center;
+  margin-top: 0.375rem;
+  font-family: 'Palatino', 'Palatino Linotype', serif;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (min-width: 640px) {
+  .calendar-day {
+    border-radius: 1rem;
+  }
+
+  .calendar-day .day-number {
+    font-size: 1rem;
+  }
+}
+
+/* ============================================
+   Utilities
+   ============================================ */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Focus styles for accessibility */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-accent-pink);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Menu Section Styles (New Design)
+   ============================================ */
+.menu-section {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.menu-section-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+}
+
+.menu-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+/* ============================================
+   Dish Tag with Colored Dot
+   ============================================ */
+.dish-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dish-tag:hover {
+  transform: scale(1.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dish-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.dish-name {
+  white-space: nowrap;
+}
+
+/* ============================================
+   Memo Section (あゆちゃんのメモ)
+   ============================================ */
+.memo-section {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.memo-section-title {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  margin-bottom: 0.75rem;
+}
+
+.memo-content {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+/* ============================================
+   Single Dish Tag (一品料理)
+   ============================================ */
+.tag-single {
+  background-color: rgba(232, 168, 124, 0.2);
+  color: #B87040;
+}
+
+/* ============================================
+   Menu List Page (Dish Names Only)
+   ============================================ */
+.menu-list-category {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.menu-list-category-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 0.75rem;
+}
+
+.menu-list-dishes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.menu-list-dish {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  color: var(--color-text);
+  border: 1px solid;
+}
+
+/* Vertical dish list (one per line) */
+.menu-list-dishes-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.menu-list-dish-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+/* ============================================
+   Conceal Mode (Simple Mode)
+   Hide character comments when enabled
+   ============================================ */
+body.conceal-mode #character-comment {
+  display: none !important;
+}
+
+/* Also hide character-related settings in conceal mode */
+body.conceal-mode .character-icon-upload:not([data-character="irik"]) {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Hide chat history section in conceal mode */
+body.conceal-mode #chat-history-section {
+  display: none !important;
+}
+
+/* ============================================
+   Chat History Styles
+   ============================================ */
+.chat-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid rgba(229, 208, 204, 0.3);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.chat-history-item:last-child {
+  border-bottom: none;
+}
+
+.chat-history-item:hover {
+  background-color: rgba(229, 208, 204, 0.2);
+}
+
+.chat-history-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-history-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.chat-history-character {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-accent-brown);
+}
+
+.chat-history-date {
+  font-size: 0.6875rem;
+  color: var(--color-text-light);
+  font-family: 'Palatino', 'Palatino Linotype', serif;
+}
+
+.chat-history-summary {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-history-delete {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.chat-history-delete:hover {
+  background-color: rgba(232, 180, 184, 0.2);
+  color: var(--color-accent-pink);
+}
