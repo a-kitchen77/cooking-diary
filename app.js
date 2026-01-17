@@ -20,7 +20,7 @@ const STORAGE_KEYS = {
 const GEMINI_MODELS = [
   'gemini-3-flash-preview',          // 優先度1
   'gemini-2.5-flash',                // 優先度2
-  'gemini-2.5-flash-preview-09-2025' // 優先度3
+  'gemini-2.5-flash-lite'            // 優先度3
 ];
 
 const CATEGORIES = {
@@ -565,6 +565,15 @@ function processCircularImage(file, size = 256) {
 // Gemini API
 // ============================================
 
+// 429エラーから待機時間を抽出するヘルパー関数
+function extractRetryAfterSeconds(errorMessage) {
+  const match = errorMessage?.match(/retry in (\d+\.?\d*)/i);
+  if (match) {
+    return Math.ceil(parseFloat(match[1]));
+  }
+  return 30; // デフォルト30秒
+}
+
 async function callGeminiAPI(prompt, imageBase64 = null, modelIndex = 0, retryRound = 0) {
   const apiKey = getApiKey();
   if (!apiKey) {
@@ -574,13 +583,15 @@ async function callGeminiAPI(prompt, imageBase64 = null, modelIndex = 0, retryRo
   const model = GEMINI_MODELS[modelIndex];
   if (!model) {
     // All models failed, check if we should retry
-    if (retryRound < 3) {
-      console.log(`全モデル失敗。リトライ ${retryRound + 1}/3 - 4秒待機中...`);
-      showToast('回線が混み合っています。少し待って再接続します...');
-      await new Promise(resolve => setTimeout(resolve, 4000)); // 4秒待機
-      return callGeminiAPI(prompt, imageBase64, 0, retryRound + 1); // 先頭から再試行
+    if (retryRound < 2) {
+      // 待機時間: 1回目=30秒, 2回目=60秒（クォータ回復を待つ）
+      const waitTime = (retryRound + 1) * 30000;
+      console.log(`全モデル失敗。リトライ ${retryRound + 1}/2 - ${waitTime / 1000}秒待機中...`);
+      showToast(`APIの制限に達しました...（${waitTime / 1000}秒待機中）`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      return callGeminiAPI(prompt, imageBase64, 0, retryRound + 1);
     }
-    throw new Error('すべてのモデルでエラーが発生しました。しばらく待ってから再試行してください。');
+    throw new Error('APIの利用制限に達しました。1分ほど待ってから再試行してください。（無料枠: 1分間に20リクエストまで）');
   }
 
   console.log(`API呼び出し: モデル=${model}, モデルインデックス=${modelIndex}, リトライラウンド=${retryRound}`);
@@ -590,7 +601,6 @@ async function callGeminiAPI(prompt, imageBase64 = null, modelIndex = 0, retryRo
   const parts = [];
 
   if (imageBase64) {
-    // Extract base64 data from data URL
     const base64Data = imageBase64.split(',')[1];
     parts.push({
       inline_data: {
@@ -625,23 +635,61 @@ async function callGeminiAPI(prompt, imageBase64 = null, modelIndex = 0, retryRo
 
     if (!response.ok) {
       const error = await response.json();
+      const errorMessage = error.error?.message || '';
       console.warn(`モデル ${model} 失敗 (HTTP ${response.status}):`, error);
 
-      // Try next model in the list
+      // 429エラー（レート制限）の場合
+      if (response.status === 429) {
+        // 日次上限（RPD）に達した場合は待っても復活しないので次のモデルへ
+        const isDailyLimit = errorMessage.toLowerCase().includes('quota exceeded') ||
+          errorMessage.toLowerCase().includes('daily') ||
+          errorMessage.toLowerCase().includes('rpd');
+
+        if (isDailyLimit) {
+          console.log(`日次上限に達したため次のモデルへ: ${model}`);
+          if (modelIndex < GEMINI_MODELS.length - 1) {
+            showToast(`${model}は日次上限...次のモデルへ`);
+            console.log(`次のモデルを試行: ${GEMINI_MODELS[modelIndex + 1]}`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return callGeminiAPI(prompt, imageBase64, modelIndex + 1, retryRound);
+          }
+        } else {
+          // 分間上限（RPM）の場合は少し待って再試行
+          const retryAfter = Math.min(extractRetryAfterSeconds(errorMessage), 30); // 最大30秒
+          console.log(`分間制限 - ${retryAfter}秒待機します...`);
+          showToast(`API混雑中...（${retryAfter}秒待機）`);
+          await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+
+          // 同じモデルで再試行（1回だけ）
+          if (retryRound < 1) {
+            return callGeminiAPI(prompt, imageBase64, modelIndex, retryRound + 1);
+          }
+          // 再試行しても駄目なら次のモデルへ
+          if (modelIndex < GEMINI_MODELS.length - 1) {
+            console.log(`次のモデルを試行: ${GEMINI_MODELS[modelIndex + 1]}`);
+            return callGeminiAPI(prompt, imageBase64, modelIndex + 1, retryRound);
+          }
+        }
+      }
+
+      // その他のエラー（404など）は次のモデルを試す
       if (modelIndex < GEMINI_MODELS.length - 1) {
         console.log(`次のモデルを試行: ${GEMINI_MODELS[modelIndex + 1]}`);
+        // モデル切り替え時に少し待機
+        await new Promise(resolve => setTimeout(resolve, 2000));
         return callGeminiAPI(prompt, imageBase64, modelIndex + 1, retryRound);
       }
 
-      // All models in current round failed, try next round
-      if (retryRound < 3) {
-        console.log(`全モデル失敗。リトライ ${retryRound + 1}/3 - 4秒待機中...`);
-        showToast('回線が混み合っています。少し待って再接続します...');
-        await new Promise(resolve => setTimeout(resolve, 4000));
+      // 全モデル失敗
+      if (retryRound < 2) {
+        const waitTime = 30000;
+        console.log(`全モデル失敗。リトライ ${retryRound + 1}/2 - ${waitTime / 1000}秒待機中...`);
+        showToast(`全モデルで失敗...（${waitTime / 1000}秒待機中）`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
         return callGeminiAPI(prompt, imageBase64, 0, retryRound + 1);
       }
 
-      throw new Error(error.error?.message || 'API呼び出しに失敗しました');
+      throw new Error(errorMessage || 'API呼び出しに失敗しました');
     }
 
     const data = await response.json();
@@ -650,18 +698,24 @@ async function callGeminiAPI(prompt, imageBase64 = null, modelIndex = 0, retryRo
   } catch (error) {
     console.error(`エラー発生 (${model}):`, error);
 
+    // 既にカスタムエラーの場合はそのまま投げる
+    if (error.message?.includes('APIの利用制限') || error.message?.includes('API制限')) {
+      throw error;
+    }
+
     if (error.name === 'TypeError') {
-      // Network error, try next model
+      // Network error
       if (modelIndex < GEMINI_MODELS.length - 1) {
         console.log(`ネットワークエラー、次のモデルを試行: ${GEMINI_MODELS[modelIndex + 1]}`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
         return callGeminiAPI(prompt, imageBase64, modelIndex + 1, retryRound);
       }
 
-      // All models failed, retry from beginning
-      if (retryRound < 3) {
-        console.log(`ネットワークエラー。リトライ ${retryRound + 1}/3 - 4秒待機中...`);
-        showToast('回線が混み合っています。少し待って再接続します...');
-        await new Promise(resolve => setTimeout(resolve, 4000));
+      if (retryRound < 2) {
+        const waitTime = 15000;
+        console.log(`ネットワークエラー。リトライ ${retryRound + 1}/2 - ${waitTime / 1000}秒待機中...`);
+        showToast(`接続エラー...（${waitTime / 1000}秒後に再試行）`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
         return callGeminiAPI(prompt, imageBase64, 0, retryRound + 1);
       }
     }
