@@ -29,11 +29,13 @@ const CATEGORIES = {
   side: { name: '副菜', class: 'tag-side', color: '#A8C4B8', order: 3 },
   salad: { name: 'サラダ', class: 'tag-salad', color: '#B8D4B8', order: 4 },
   small: { name: 'ちょこっと一品', class: 'tag-small', color: '#D4C4B0', order: 5 },
-  other: { name: 'その他', class: 'tag-other', color: '#C8C4C0', order: 6 }
+  other: { name: 'その他', class: 'tag-other', color: '#C8C4C0', order: 6 },
+  eatingout: { name: '外食', class: 'tag-eatingout', color: '#C4A8D4', order: 7 },
+  takeout: { name: 'テイクアウト', class: 'tag-takeout', color: '#A8C4D4', order: 8 }
 };
 
 // Category display order
-const CATEGORY_ORDER = ['single', 'main', 'side', 'salad', 'small', 'other'];
+const CATEGORY_ORDER = ['single', 'main', 'side', 'salad', 'small', 'other', 'eatingout', 'takeout'];
 
 
 const DEFAULT_CHARACTERS = {
@@ -523,7 +525,7 @@ function processImage(file, maxSize = 800) {
   });
 }
 
-function processCircularImage(file, size = 128) {
+function processCircularImage(file, size = 256) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -548,7 +550,7 @@ function processCircularImage(file, size = 128) {
         // Draw image
         ctx.drawImage(img, sx, sy, cropSize, cropSize, 0, 0, size, size);
 
-        const base64 = canvas.toDataURL('image/png');
+        const base64 = canvas.toDataURL('image/png', 1.0);
         resolve(base64);
       };
       img.onerror = reject;
@@ -673,7 +675,13 @@ async function analyzeMealAndGetComment(imageBase64, userText, characterId) {
   const characters = getCharacters();
   const characterName = characters[characterId]?.name || characterId;
 
-  const analysisPrompt = `あなたは料理を分析し、キャラクターになりきってコメントするAIです。
+  // 画像がある場合とない場合でプロンプトを分岐
+  const hasImage = imageBase64 && imageBase64 !== '' && !imageBase64.endsWith('image-preview');
+
+  let analysisPrompt;
+
+  if (hasImage) {
+    analysisPrompt = `あなたは料理を分析し、キャラクターになりきってコメントするAIです。
 
 【タスク1: 料理分析 - 重要：複数料理を認識すること】
 提供された画像とユーザーのメモをよく見て、写真に写っている「すべての料理」を個別に認識してください。
@@ -684,14 +692,17 @@ async function analyzeMealAndGetComment(imageBase64, userText, characterId) {
 - category: カテゴリー（以下のいずれか1つ）
   - "single": 一品料理（カレー、丼もの、パスタ、ラーメンなど、一皿で完結する料理）
   - "main": 主菜（メインディッシュ、肉料理、魚料理など）
-  - "side": 副菜（付け合わせ、煮物、炒め物、和え物など）
+  - "side": 副菜（付け合わせ、煎煩、炒め物、和え物など）
   - "salad": サラダ
   - "small": ちょこっと一品（おつまみ、小鉢など）
   - "other": その他（ご飯、汁物、スープ、デザートなど）
+  - "eatingout": 外食（レストランや食堂で食べた料理）
+  - "takeout": テイクアウト（買ってきたお弁当やお惣菜）
 
 【タスク2: キャラクターコメント生成】
+今回は【${characterName}】になりきってコメントしてください。
 以下のキャラクター設定に基づいて、あゆちゃんが作った「すべての料理」に対するコメントを生成してください。
-コメントは4〜6文程度で、複数の料理について言及しながら、料理の感想、労い、愛情表現を含めてください。
+コメントは4～6文程度で、複数の料理について言及しながら、料理の感想、労い、愛情表現を含めてください。
 
 ${characterPrompt}
 
@@ -708,8 +719,45 @@ dishesは配列で、認識したすべての料理を含めてください：
   ],
   "comment": "キャラクターからのコメント（すべての料理に言及）"
 }`;
+  } else {
+    // 画像なしの場合はメモのみで分析
+    analysisPrompt = `あなたはキャラクターになりきってコメントするAIです。
 
-  const response = await callGeminiAPI(analysisPrompt, imageBase64);
+【タスク1: 料理推定】
+ユーザーのメモから料理名を推定してください。
+メモに料理名が明記されていればそのまま使用し、なければ「料理」としてください。
+
+カテゴリーは以下から選択：
+- "single": 一品料理
+- "main": 主菜
+- "side": 副菜
+- "salad": サラダ
+- "small": ちょこっと一品
+- "other": その他
+- "eatingout": 外食
+- "takeout": テイクアウト
+
+【タスク2: キャラクターコメント生成】
+今回は【${characterName}】になりきってコメントしてください。
+以下のキャラクター設定に基づいて、あゆちゃんの料理に対するコメントを生成してください。
+コメントは4～6文程度で、料理の感想、労い、愛情表現を含めてください。
+
+${characterPrompt}
+
+【ユーザーのメモ】
+${userText || '（メモなし）'}
+
+【出力形式】
+必ず以下のJSON形式のみで出力：
+{
+  "dishes": [
+    { "name": "料理名", "category": "カテゴリーID" }
+  ],
+  "comment": "キャラクターからのコメント"
+}`;
+  }
+
+  const response = await callGeminiAPI(analysisPrompt, hasImage ? imageBase64 : null);
 
   // Parse JSON from response
   try {
@@ -859,11 +907,24 @@ function renderCalendar() {
     if (isToday) classes += ' today';
     if (dayOfWeek === 0) classes += ' sunday';
     if (dayOfWeek === 6) classes += ' saturday';
-    if (meal?.image) classes += ' has-meal';
 
-    const style = meal?.image ? `background-image: url('${meal.image}')` : '';
+    // 記録があるかどうかと、画像があるかどうかを分けて判定
+    const hasMeal = !!meal;
+    const hasImage = meal?.image && meal.image !== '';
+
+    if (hasImage) {
+      classes += ' has-meal';
+    } else if (hasMeal) {
+      classes += ' has-memo';
+    }
+
+    const style = hasImage ? `background-image: url('${meal.image}')` : '';
+
+    // 画像なしで記録がある場合はメモアイコンを表示
+    const memoIcon = hasMeal && !hasImage ? `<span class="memo-icon">✍</span>` : '';
 
     html += `<div class="${classes}" data-date="${dateKey}" style="${style}">
+      ${memoIcon}
       <span class="day-number text-xs font-medium">${day}</span>
     </div>`;
   }
@@ -928,7 +989,12 @@ function showDetailPage() {
   const meal = meals[dateKey];
   const [year, month, day] = dateKey.split('-').map(Number);
 
-  $('#detail-date-title').textContent = `${year}年 ${month}月 ${day}日`;
+  // 曜日を取得
+  const dayOfWeekNames = ['日', '月', '火', '水', '木', '金', '土'];
+  const date = new Date(year, month - 1, day);
+  const dayOfWeek = dayOfWeekNames[date.getDay()];
+
+  $('#detail-date-title').textContent = `${year}年${month}月${day}日（${dayOfWeek}）`;
 
   if (meal) {
     showViewMode(meal);
@@ -952,8 +1018,17 @@ function showViewMode(meal) {
   $('#detail-input-mode').classList.add('hidden');
   $('#detail-view-mode').classList.remove('hidden');
 
-  // Display meal data
-  $('#view-image').src = meal.image;
+  // 画像の有無をチェック
+  const hasImage = meal.image && meal.image !== '';
+  const viewImageContainer = $('#view-image').parentElement;
+
+  if (hasImage) {
+    $('#view-image').src = meal.image;
+    viewImageContainer.classList.remove('hidden');
+  } else {
+    // 画像なしの場合は画像コンテナを非表示
+    viewImageContainer.classList.add('hidden');
+  }
 
   // Display tags - support both old format (single dish) and new format (multiple dishes)
   const dishes = meal.dishes || [{ name: meal.dishName, category: meal.category }];
@@ -1510,11 +1585,16 @@ function initEventHandlers() {
 }
 
 async function submitMealToAI() {
-  const imageBase64 = $('#image-preview').src;
+  const imagePreview = $('#image-preview');
+  const imageBase64 = imagePreview.src;
   const memoText = $('#meal-text').value.trim();
 
-  if (!imageBase64 || imageBase64 === '') {
-    showToast('料理の写真を選択してください');
+  // 画像があるかどうかを確認（画像は任意）
+  const hasImage = imageBase64 && imageBase64 !== '' && !imageBase64.includes('image-preview') && imagePreview.classList.contains('hidden') === false;
+
+  // 画像もメモもない場合はエラー
+  if (!hasImage && !memoText) {
+    showToast('写真またはメモを入力してください');
     return;
   }
 
@@ -1537,7 +1617,7 @@ async function submitMealToAI() {
     const dishNames = dishes.map(d => d.name).join('、');
 
     const mealData = {
-      image: imageBase64,
+      image: hasImage ? imageBase64 : '',
       dishes: dishes,
       dishName: dishNames, // For backward compatibility and display
       comment: result.comment,

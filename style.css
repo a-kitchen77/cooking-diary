@@ -728,3 +728,38 @@ body.conceal-mode #chat-history-section {
   background-color: rgba(232, 180, 184, 0.2);
   color: var(--color-accent-pink);
 }
+
+/* ============================================
+   Calendar Memo Indicator (No Image)
+   ============================================ */
+.calendar-day.has-memo {
+  background: linear-gradient(135deg, var(--color-main) 0%, var(--color-accent-beige) 100%);
+  position: relative;
+}
+
+.calendar-day.has-memo .day-number {
+  position: relative;
+  z-index: 1;
+  color: var(--color-text);
+}
+
+.memo-icon {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.625rem;
+  opacity: 0.7;
+}
+
+/* ============================================
+   New Category Tags: Eating Out & Takeout
+   ============================================ */
+.tag-eatingout {
+  background-color: rgba(196, 168, 212, 0.2);
+  color: #7A5A8A;
+}
+
+.tag-takeout {
+  background-color: rgba(168, 196, 212, 0.2);
+  color: #5A7A8A;
+}
