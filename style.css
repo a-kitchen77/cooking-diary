@@ -63,38 +63,38 @@
 
 /* 🦄 Yumekawa Digital (夢のオーロラ版) */
 [data-theme="yumekawa"] {
-  /* 背景色：フォールバック（グラデーションで上書き） */
-  --color-base: #FFE4F0;
-  /* メインカラー：ラベンダーピンク */
-  --color-main: #DDA0DD;
-  --color-main-dark: #DA70D6;
-  /* アクセント：桜色（少し濃いめ） */
-  --color-accent-pink: #FF91A4;
-  /* ミントグリーン（鮮やかめ） */
-  --color-accent-green: #7FFFD4;
-  /* 藤色（濃いめ） */
-  --color-accent-brown: #9B7ED9;
-  --color-accent-beige: #FFE4EC;
-  /* 文字色：濃いめパステルパープル */
-  --color-text: #9B7ED9;
-  --color-text-light: #DA70D6;
+  /* 背景色：フォールバック */
+  --color-base: #FFF0F5;
+  /* メインカラー：ソフトラベンダー */
+  --color-main: #DCC0F0;
+  --color-main-dark: #CCA0E0;
+  /* アクセント：桜色 */
+  --color-accent-pink: #FF9AAD;
+  /* ミントグリーン */
+  --color-accent-green: #90EED8;
+  /* 藤色 */
+  --color-accent-brown: #A080D0;
+  --color-accent-beige: #FFECF0;
+  /* 文字色：パステルパープル */
+  --color-text: #A080D0;
+  --color-text-light: #CCA0E0;
   /* カード背景：すりガラス風 */
   --color-card-bg: rgba(255, 255, 255, 0.85);
   --color-nav-bg: rgba(255, 255, 255, 0.9);
-  /* シャドウ：ラベンダー系 */
-  --shadow-color: rgba(200, 162, 255, 0.35);
-  /* グラデーション：少し鮮やかなマカロン！★ */
-  --button-gradient: linear-gradient(120deg, #D4A5FF 0%, #7EC8E3 100%);
-  /* 発光：ふわっとラベンダー */
-  --neon-glow: 0 4px 15px rgba(200, 162, 255, 0.5);
+  /* シャドウ */
+  --shadow-color: rgba(180, 140, 220, 0.35);
+  /* グラデーション：ちょうどいいマカロン！★ */
+  --button-gradient: linear-gradient(120deg, #D0A0F0 0%, #90C8E0 100%);
+  /* 発光 */
+  --neon-glow: 0 4px 15px rgba(180, 140, 220, 0.45);
 
-  /* タグカラー（少し鮮やかに） */
-  --tag-single: #FF91A4;
-  --tag-main: #DA70D6;
-  --tag-side: #7FFFD4;
-  --tag-salad: #7EC8E3;
-  --tag-small: #FFE4B5;
-  --tag-other: #87CEEB;
+  /* タグカラー */
+  --tag-single: #FF9AAD;
+  --tag-main: #CCA0E0;
+  --tag-side: #90EED8;
+  --tag-salad: #90C8E0;
+  --tag-small: #FFE0C8;
+  --tag-other: #90D0F0;
 }
 
 /* ============================================
@@ -121,7 +121,7 @@ body {
 
 /* 🦄 Yumekawa: オーロラグラデーション背景 */
 [data-theme="yumekawa"] body {
-  background: linear-gradient(180deg, #FFE4F0 0%, #DDA0DD 30%, #E6E6FA 60%, #B0E0E6 100%) !important;
+  background: linear-gradient(180deg, #FFF0F5 0%, #DCC0F0 35%, #E0E8F8 70%, #D0F0F0 100%) !important;
   background-attachment: fixed !important;
   min-height: 100vh;
 }
