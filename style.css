@@ -61,40 +61,40 @@
   --tag-other: #5a5a7c;
 }
 
-/* 🦄 Yumekawa Digital (ふんわりパステル版) */
+/* 🦄 Yumekawa Digital (夢のオーロラ版) */
 [data-theme="yumekawa"] {
-  /* 背景色：極めて薄いピンクパープル */
-  --color-base: #FFF5F9;
-  /* メインカラー：やさしいラベンダー */
-  --color-main: #E8D5F0;
-  --color-main-dark: #D4BBFF;
-  /* アクセント：パステルピンク */
-  --color-accent-pink: #FFB7D5;
-  /* ミントグリーン（薄め） */
-  --color-accent-green: #A0F0ED;
-  /* パープル系 */
-  --color-accent-brown: #B794F6;
-  --color-accent-beige: #FFE4F0;
-  /* 文字色：やさしいラベンダー */
-  --color-text: #8B5CF6;
-  --color-text-light: #C4A7E7;
-  /* カード背景 */
-  --color-card-bg: #ffffff;
-  --color-nav-bg: #ffffff;
-  /* シャドウ */
-  --shadow-color: rgba(183, 148, 246, 0.2);
-  /* グラデーション：ふんわりパステル */
-  --button-gradient: linear-gradient(135deg, #FFCce6, #D4BBFF);
-  /* ネオン発光（やわらかく） */
-  --neon-glow: 0 0 15px rgba(255, 183, 213, 0.5);
+  /* 背景色：フォールバック（グラデーションで上書き） */
+  --color-base: #FFE4F0;
+  /* メインカラー：ラベンダーピンク */
+  --color-main: #DDA0DD;
+  --color-main-dark: #DA70D6;
+  /* アクセント：桜色（少し濃いめ） */
+  --color-accent-pink: #FF91A4;
+  /* ミントグリーン（鮮やかめ） */
+  --color-accent-green: #7FFFD4;
+  /* 藤色（濃いめ） */
+  --color-accent-brown: #9B7ED9;
+  --color-accent-beige: #FFE4EC;
+  /* 文字色：濃いめパステルパープル */
+  --color-text: #9B7ED9;
+  --color-text-light: #DA70D6;
+  /* カード背景：すりガラス風 */
+  --color-card-bg: rgba(255, 255, 255, 0.85);
+  --color-nav-bg: rgba(255, 255, 255, 0.9);
+  /* シャドウ：ラベンダー系 */
+  --shadow-color: rgba(200, 162, 255, 0.35);
+  /* グラデーション：少し鮮やかなマカロン！★ */
+  --button-gradient: linear-gradient(120deg, #D4A5FF 0%, #7EC8E3 100%);
+  /* 発光：ふわっとラベンダー */
+  --neon-glow: 0 4px 15px rgba(200, 162, 255, 0.5);
 
-  /* タグカラー（パステル） */
-  --tag-single: #FFB7D5;
-  --tag-main: #C4A7E7;
-  --tag-side: #A0F0ED;
-  --tag-salad: #A0F0ED;
+  /* タグカラー（少し鮮やかに） */
+  --tag-single: #FF91A4;
+  --tag-main: #DA70D6;
+  --tag-side: #7FFFD4;
+  --tag-salad: #7EC8E3;
   --tag-small: #FFE4B5;
-  --tag-other: #B5D8FF;
+  --tag-other: #87CEEB;
 }
 
 /* ============================================
@@ -117,6 +117,13 @@ body {
   /* テーマによる背景色とテキスト色の強制適用 */
   background-color: var(--color-base) !important;
   color: var(--color-text) !important;
+}
+
+/* 🦄 Yumekawa: オーロラグラデーション背景 */
+[data-theme="yumekawa"] body {
+  background: linear-gradient(180deg, #FFE4F0 0%, #DDA0DD 30%, #E6E6FA 60%, #B0E0E6 100%) !important;
+  background-attachment: fixed !important;
+  min-height: 100vh;
 }
 
 /* ============================================
@@ -1118,38 +1125,53 @@ nav {
 
 /* Yumekawa: Card hover effect */
 [data-theme="yumekawa"] .bg-white:hover {
-  box-shadow: 0 4px 20px rgba(183, 148, 246, 0.2), 0 0 10px rgba(255, 183, 213, 0.1);
+  box-shadow: 0 4px 20px rgba(224, 195, 252, 0.3), 0 0 10px rgba(142, 197, 252, 0.2);
 }
 
-/* Yumekawa: Comment bubble background ★ */
+/* Yumekawa: Comment bubble background ★極薄ピンク */
 [data-theme="yumekawa"] #comment-bubble,
 [data-theme="yumekawa"] .bg-main\/30 {
-  background-color: #FFF0F5 !important;
+  background-color: #FFF5F7 !important;
 }
 
-/* Yumekawa: Calendar arrow buttons ★ */
+/* Yumekawa: Calendar arrow buttons ★ペールラベンダー */
 [data-theme="yumekawa"] #prev-month,
 [data-theme="yumekawa"] #next-month {
-  background-color: #E8D5F0 !important;
+  background: var(--button-gradient) !important;
 }
 
 [data-theme="yumekawa"] #prev-month svg,
 [data-theme="yumekawa"] #next-month svg {
-  color: #B794F6 !important;
+  color: white !important;
 }
 
 /* Yumekawa: Softer modal glow */
 [data-theme="yumekawa"] #modal>div {
-  box-shadow: 0 0 20px rgba(255, 183, 213, 0.3), 0 0 40px rgba(212, 187, 255, 0.2);
+  box-shadow: 0 0 20px rgba(224, 195, 252, 0.4), 0 0 40px rgba(142, 197, 252, 0.2);
 }
 
 /* Yumekawa: Chat bubbles */
 [data-theme="yumekawa"] .chat-message.character .bubble {
-  background-color: #FFF0F5 !important;
+  background-color: #F0F8FF !important;
 }
 
 /* Yumekawa: Avatar backgrounds */
 [data-theme="yumekawa"] .chat-character .avatar,
 [data-theme="yumekawa"] .chat-message .avatar {
-  background-color: #E8D5F0 !important;
+  background-color: #E6E6FA !important;
+}
+
+/* Yumekawa: List tabs ★ペールトーン */
+[data-theme="yumekawa"] .list-tab {
+  background-color: #F0F8FF !important;
+  color: #B39DDB !important;
+}
+
+[data-theme="yumekawa"] .list-tab.active {
+  background: var(--button-gradient) !important;
+  color: white !important;
+}
+
+[data-theme="yumekawa"] .list-tab:hover:not(.active) {
+  background-color: #E6E6FA !important;
 }
