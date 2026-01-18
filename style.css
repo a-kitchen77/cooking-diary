@@ -61,29 +61,40 @@
   --tag-other: #5a5a7c;
 }
 
-/* 🦄 Yumekawa Digital (Special) */
+/* 🦄 Yumekawa Digital (ふんわりパステル版) */
 [data-theme="yumekawa"] {
-  --color-base: #f3e6ff;
-  --color-main: #e0c3fc;
-  --color-main-dark: #c9a7eb;
-  --color-accent-pink: #f15bb5;
-  --color-accent-green: #00f5d4;
-  --color-accent-brown: #9b5de5;
-  --color-accent-beige: #fee440;
-  --color-text: #6b21a8;
-  --color-text-light: #9b5de5;
+  /* 背景色：極めて薄いピンクパープル */
+  --color-base: #FFF5F9;
+  /* メインカラー：やさしいラベンダー */
+  --color-main: #E8D5F0;
+  --color-main-dark: #D4BBFF;
+  /* アクセント：パステルピンク */
+  --color-accent-pink: #FFB7D5;
+  /* ミントグリーン（薄め） */
+  --color-accent-green: #A0F0ED;
+  /* パープル系 */
+  --color-accent-brown: #B794F6;
+  --color-accent-beige: #FFE4F0;
+  /* 文字色：やさしいラベンダー */
+  --color-text: #8B5CF6;
+  --color-text-light: #C4A7E7;
+  /* カード背景 */
   --color-card-bg: #ffffff;
   --color-nav-bg: #ffffff;
-  --shadow-color: rgba(155, 93, 229, 0.3);
-  --button-gradient: linear-gradient(45deg, #f15bb5, #9b5de5, #00bbf9);
-  --neon-glow: 0 0 10px #f15bb5, 0 0 20px #00bbf9, 0 0 30px #9b5de5;
+  /* シャドウ */
+  --shadow-color: rgba(183, 148, 246, 0.2);
+  /* グラデーション：ふんわりパステル */
+  --button-gradient: linear-gradient(135deg, #FFCce6, #D4BBFF);
+  /* ネオン発光（やわらかく） */
+  --neon-glow: 0 0 15px rgba(255, 183, 213, 0.5);
 
-  --tag-single: #f15bb5;
-  --tag-main: #9b5de5;
-  --tag-side: #00f5d4;
-  --tag-salad: #00f5d4;
-  --tag-small: #fee440;
-  --tag-other: #00bbf9;
+  /* タグカラー（パステル） */
+  --tag-single: #FFB7D5;
+  --tag-main: #C4A7E7;
+  --tag-side: #A0F0ED;
+  --tag-salad: #A0F0ED;
+  --tag-small: #FFE4B5;
+  --tag-other: #B5D8FF;
 }
 
 /* ============================================
@@ -1107,5 +1118,38 @@ nav {
 
 /* Yumekawa: Card hover effect */
 [data-theme="yumekawa"] .bg-white:hover {
-  box-shadow: 0 4px 20px rgba(155, 93, 229, 0.2), 0 0 10px rgba(241, 91, 181, 0.1);
+  box-shadow: 0 4px 20px rgba(183, 148, 246, 0.2), 0 0 10px rgba(255, 183, 213, 0.1);
+}
+
+/* Yumekawa: Comment bubble background ★ */
+[data-theme="yumekawa"] #comment-bubble,
+[data-theme="yumekawa"] .bg-main\/30 {
+  background-color: #FFF0F5 !important;
+}
+
+/* Yumekawa: Calendar arrow buttons ★ */
+[data-theme="yumekawa"] #prev-month,
+[data-theme="yumekawa"] #next-month {
+  background-color: #E8D5F0 !important;
+}
+
+[data-theme="yumekawa"] #prev-month svg,
+[data-theme="yumekawa"] #next-month svg {
+  color: #B794F6 !important;
+}
+
+/* Yumekawa: Softer modal glow */
+[data-theme="yumekawa"] #modal>div {
+  box-shadow: 0 0 20px rgba(255, 183, 213, 0.3), 0 0 40px rgba(212, 187, 255, 0.2);
+}
+
+/* Yumekawa: Chat bubbles */
+[data-theme="yumekawa"] .chat-message.character .bubble {
+  background-color: #FFF0F5 !important;
+}
+
+/* Yumekawa: Avatar backgrounds */
+[data-theme="yumekawa"] .chat-character .avatar,
+[data-theme="yumekawa"] .chat-message .avatar {
+  background-color: #E8D5F0 !important;
 }
