@@ -733,14 +733,31 @@ body.conceal-mode #chat-history-section {
    Calendar Memo Indicator (No Image)
    ============================================ */
 .calendar-day.has-memo {
-  background: linear-gradient(135deg, var(--color-main) 0%, var(--color-accent-beige) 100%);
   position: relative;
+  /* ギンガムチェック風パターン（白×ラテカラー） */
+  background-color: #FFFCFA;
+  background-image:
+    linear-gradient(45deg, var(--color-main) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--color-main) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--color-main) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--color-main) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+.calendar-day.has-memo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: inherit;
 }
 
 .calendar-day.has-memo .day-number {
   position: relative;
   z-index: 1;
-  color: var(--color-text);
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .memo-icon {
@@ -748,7 +765,10 @@ body.conceal-mode #chat-history-section {
   top: 4px;
   right: 4px;
   font-size: 0.625rem;
-  opacity: 0.7;
+  opacity: 0.9;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 1;
 }
 
 /* ============================================

@@ -730,7 +730,10 @@ async function analyzeMealAndGetComment(imageBase64, userText, characterId) {
   const characterName = characters[characterId]?.name || characterId;
 
   // 画像がある場合とない場合でプロンプトを分岐
-  const hasImage = imageBase64 && imageBase64 !== '' && !imageBase64.endsWith('image-preview');
+  // imageBase64がnull、空文字、またはプレースホルダーパスを含む場合は画像なしと判定
+  const hasImage = imageBase64 && imageBase64 !== '' &&
+    !imageBase64.includes('image-preview') &&
+    imageBase64.startsWith('data:image/');
 
   let analysisPrompt;
 
@@ -1664,7 +1667,8 @@ async function submitMealToAI() {
   showLoading('AIが料理を分析中...');
 
   try {
-    const result = await analyzeMealAndGetComment(imageBase64, memoText, randomCharacterId);
+    // 画像がない場合はnullを渡す
+    const result = await analyzeMealAndGetComment(hasImage ? imageBase64 : null, memoText, randomCharacterId);
 
     // Support new multi-dish format
     const dishes = result.dishes || [{ name: result.dishName, category: result.category }];
