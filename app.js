@@ -14,7 +14,8 @@ const STORAGE_KEYS = {
   PROMPTS: 'cookingDiary_prompts',
   CHAT_HISTORY: 'cookingDiary_chatHistory',
   CHAT_SESSIONS: 'cookingDiary_chatSessions',
-  CONCEAL_MODE: 'cookingDiary_concealMode'
+  CONCEAL_MODE: 'cookingDiary_concealMode',
+  THEME: 'cookingDiary_theme'
 };
 
 const GEMINI_MODELS = [
@@ -349,6 +350,38 @@ function resetChatForConcealMode() {
 
   // Re-render chat characters to show only Irik
   renderChatCharacters();
+}
+
+// ============================================
+// Theme Management
+// ============================================
+
+function getTheme() {
+  return getStorage(STORAGE_KEYS.THEME, 'latte');
+}
+
+function saveTheme(theme) {
+  return setStorage(STORAGE_KEYS.THEME, theme);
+}
+
+function applyTheme(theme) {
+  // Remove theme attribute for default (latte), set for others
+  if (theme === 'latte' || !theme) {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+
+  // Update select if exists
+  const themeSelect = $('#theme-select');
+  if (themeSelect) {
+    themeSelect.value = theme || 'latte';
+  }
+}
+
+function initTheme() {
+  const savedTheme = getTheme();
+  applyTheme(savedTheme);
 }
 
 // ============================================
@@ -1601,6 +1634,14 @@ function initEventHandlers() {
     if (e.key === 'Enter') sendChatMessage();
   });
 
+  // Settings - Theme
+  $('#theme-select').addEventListener('change', (e) => {
+    const theme = e.target.value;
+    applyTheme(theme);
+    saveTheme(theme);
+    showToast(`テーマを「${e.target.options[e.target.selectedIndex].text}」に変更しました`);
+  });
+
   // Settings - API Key
   $('#save-api-key').addEventListener('click', () => {
     const key = $('#api-key-input').value.trim();
@@ -1740,6 +1781,7 @@ function importData(e) {
 // ============================================
 
 function init() {
+  initTheme();
   initConcealMode();
   initEventHandlers();
   navigateTo('calendar');
