@@ -377,6 +377,20 @@ function applyTheme(theme) {
   if (themeSelect) {
     themeSelect.value = theme || 'latte';
   }
+
+  // Yumekawa: ヘッダーにすりガラス効果を適用
+  const header = document.querySelector('header');
+  if (header) {
+    if (theme === 'yumekawa') {
+      header.style.background = 'rgba(255, 255, 255, 0.5)';
+      header.style.backdropFilter = 'blur(16px)';
+      header.style.webkitBackdropFilter = 'blur(16px)';
+    } else {
+      header.style.background = '';
+      header.style.backdropFilter = '';
+      header.style.webkitBackdropFilter = '';
+    }
+  }
 }
 
 function initTheme() {

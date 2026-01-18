@@ -1193,25 +1193,36 @@ nav {
    ============================================ */
 
 /* カード・パネルにすりガラス効果を適用（Yumekawa限定） */
-[data-theme="yumekawa"] .bg-white,
-[data-theme="yumekawa"] .shadow-soft {
-  background-color: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 32px 0 rgba(160, 128, 208, 0.15) !important;
+html[data-theme="yumekawa"] .bg-white,
+html[data-theme="yumekawa"] .shadow-soft,
+html[data-theme="yumekawa"] .rounded-3xl {
+  background-color: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 8px 32px 0 rgba(160, 128, 208, 0.18) !important;
 }
 
 /* ナビゲーションもすりガラス化 */
-[data-theme="yumekawa"] nav {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+html[data-theme="yumekawa"] nav {
+  background-color: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.5) !important;
 }
 
-/* ヘッダーもすりガラス化 */
-[data-theme="yumekawa"] header {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* ヘッダーもすりガラス化（bg-base系を強制上書き） */
+html[data-theme="yumekawa"] header[class*="bg-base"],
+html[data-theme="yumekawa"] header[class*="sticky"],
+html[data-theme="yumekawa"] header {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+/* #app コンテナの背景を透明に */
+html[data-theme="yumekawa"] #app {
+  background-color: transparent !important;
 }
