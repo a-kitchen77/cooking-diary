@@ -301,15 +301,25 @@ textarea::placeholder {
   background-color: rgba(229, 208, 204, 0.3);
 }
 
-.calendar-day.today {
+.calendar-day.today:not(.has-meal) {
   background: linear-gradient(135deg, var(--color-accent-pink), var(--color-main));
   color: white;
   font-weight: 500;
 }
 
 .calendar-day.has-meal {
-  background-size: cover;
+  background-size: contain;
   background-position: center;
+  background-repeat: no-repeat;
+  background-color: #FFFCFA;
+}
+
+/* 当日かつ料理画像がある場合は、todayのグラデーションを使わず画像を表示 */
+.calendar-day.today.has-meal {
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: var(--color-main);
 }
 
 .calendar-day.has-meal::before {
@@ -989,7 +999,7 @@ nav {
 
 /* Button gradients */
 .chat-message.user .bubble,
-.calendar-day.today {
+.calendar-day.today:not(.has-meal) {
   background: var(--button-gradient);
 }
 
@@ -1011,7 +1021,7 @@ nav {
 
 /* Yumekawa: Neon glow buttons */
 [data-theme="yumekawa"] .chat-message.user .bubble,
-[data-theme="yumekawa"] .calendar-day.today,
+[data-theme="yumekawa"] .calendar-day.today:not(.has-meal),
 [data-theme="yumekawa"] button.bg-accent-pink,
 [data-theme="yumekawa"] .list-tab.active {
   background: var(--button-gradient);
