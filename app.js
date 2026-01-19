@@ -1516,10 +1516,9 @@ function renderLuckyMenuAndPartnerComment() {
 
   if (luckyMenu) {
     luckyMenuContent.innerHTML = `
-      <div class="lucky-menu-name text-lg font-medium text-accent-brown">
+      <div class="lucky-menu-name text-sm font-medium text-accent-brown">
         ${luckyMenu}
       </div>
-      <div class="text-xs text-text-light mt-1">今日のおすすめ！</div>
     `;
   } else {
     luckyMenuContent.innerHTML = `
@@ -1543,7 +1542,7 @@ function renderLuckyMenuAndPartnerComment() {
   const partnerContent = $('#partner-comment-content');
 
   partnerContent.innerHTML = `
-    <div class="partner-avatar w-12 h-12 rounded-full bg-main overflow-hidden flex-shrink-0 shadow-soft">
+    <div class="partner-avatar w-16 h-16 rounded-full bg-main overflow-hidden flex-shrink-0 shadow-soft">
       ${partner.icon ? `<img src="${partner.icon}" alt="${partner.name}" class="w-full h-full object-cover">` : ''}
     </div>
     <div class="partner-bubble flex-1">
