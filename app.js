@@ -1639,7 +1639,7 @@ function showViewMode(meal) {
   // Display memo section with new title
   const memoHtml = meal.memo ? `
     <div class="memo-section">
-      <div class="memo-section-title">📝 あゆちゃんのメモ</div>
+      <div class="memo-section-title">📝 ひとことメモ</div>
       <div class="memo-content">${meal.memo}</div>
     </div>
   ` : '';
