@@ -4,19 +4,28 @@
  */
 
 // ============================================
+// IndexedDB (Dexie.js) Setup
+// ============================================
+
+const db = new Dexie('CookingDiaryDB');
+db.version(1).stores({
+  meals: 'dateKey',
+  settings: 'key',
+  chatSessions: 'id'
+});
+
+// ============================================
 // Constants & Default Data
 // ============================================
 
-const STORAGE_KEYS = {
-  API_KEY: 'cookingDiary_apiKey',
-  MEALS: 'cookingDiary_meals',
-  CHARACTERS: 'cookingDiary_characters',
-  PROMPTS: 'cookingDiary_prompts',
-  CHAT_HISTORY: 'cookingDiary_chatHistory',
-  CHAT_SESSIONS: 'cookingDiary_chatSessions',
-  CONCEAL_MODE: 'cookingDiary_concealMode',
-  THEME: 'cookingDiary_theme',
-  LUCKY_MENU: 'cookingDiary_luckyMenu'
+// Settings keys for IndexedDB
+const SETTING_KEYS = {
+  API_KEY: 'apiKey',
+  CHARACTERS: 'characters',
+  PROMPTS: 'prompts',
+  CONCEAL_MODE: 'concealMode',
+  THEME: 'theme',
+  LUCKY_MENU: 'luckyMenu'
 };
 
 const GEMINI_MODELS = [
@@ -583,52 +592,82 @@ function showModal(title, content, onConfirm, confirmText = '確認') {
 }
 
 // ============================================
-// Storage Functions
+// Storage Functions (IndexedDB via Dexie.js)
 // ============================================
 
-function getStorage(key, defaultValue = null) {
+// Settings helpers
+async function getSetting(key, defaultValue = null) {
   try {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : defaultValue;
+    const record = await db.settings.get(key);
+    return record ? record.value : defaultValue;
   } catch (e) {
-    console.error('Storage read error:', e);
+    console.error('Settings read error:', e);
     return defaultValue;
   }
 }
 
-function setStorage(key, value) {
+async function setSetting(key, value) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    await db.settings.put({ key, value });
     return true;
   } catch (e) {
-    console.error('Storage write error:', e);
+    console.error('Settings write error:', e);
     showToast('データの保存に失敗しました');
     return false;
   }
 }
 
-function getMeals() {
-  return getStorage(STORAGE_KEYS.MEALS, {});
+// Meals helpers
+async function getMeals() {
+  try {
+    const allMeals = await db.meals.toArray();
+    const mealsObj = {};
+    allMeals.forEach(meal => {
+      mealsObj[meal.dateKey] = meal;
+    });
+    return mealsObj;
+  } catch (e) {
+    console.error('Meals read error:', e);
+    return {};
+  }
 }
 
-function saveMeal(dateKey, mealData) {
-  const meals = getMeals();
-  meals[dateKey] = mealData;
-  return setStorage(STORAGE_KEYS.MEALS, meals);
+async function getMeal(dateKey) {
+  try {
+    return await db.meals.get(dateKey);
+  } catch (e) {
+    console.error('Meal read error:', e);
+    return null;
+  }
 }
 
-function deleteMeal(dateKey) {
-  const meals = getMeals();
-  delete meals[dateKey];
-  return setStorage(STORAGE_KEYS.MEALS, meals);
+async function saveMeal(dateKey, mealData) {
+  try {
+    await db.meals.put({ ...mealData, dateKey });
+    return true;
+  } catch (e) {
+    console.error('Meal save error:', e);
+    showToast('データの保存に失敗しました');
+    return false;
+  }
 }
 
-function getCharacters() {
-  const saved = getStorage(STORAGE_KEYS.CHARACTERS, null);
+async function deleteMeal(dateKey) {
+  try {
+    await db.meals.delete(dateKey);
+    return true;
+  } catch (e) {
+    console.error('Meal delete error:', e);
+    return false;
+  }
+}
+
+// Characters
+async function getCharacters() {
+  const saved = await getSetting(SETTING_KEYS.CHARACTERS, null);
   if (!saved) {
     return { ...DEFAULT_CHARACTERS };
   }
-  // Merge with defaults to ensure all characters exist
   const merged = { ...DEFAULT_CHARACTERS };
   for (const key in saved) {
     if (merged[key]) {
@@ -638,17 +677,18 @@ function getCharacters() {
   return merged;
 }
 
-function saveCharacterIcon(characterId, iconBase64) {
-  const characters = getCharacters();
+async function saveCharacterIcon(characterId, iconBase64) {
+  const characters = await getCharacters();
   if (characters[characterId]) {
     characters[characterId].icon = iconBase64;
-    return setStorage(STORAGE_KEYS.CHARACTERS, characters);
+    return await setSetting(SETTING_KEYS.CHARACTERS, characters);
   }
   return false;
 }
 
-function getPrompts() {
-  const saved = getStorage(STORAGE_KEYS.PROMPTS, null);
+// Prompts
+async function getPrompts() {
+  const saved = await getSetting(SETTING_KEYS.PROMPTS, null);
   if (!saved) {
     const defaults = {};
     for (const key in DEFAULT_CHARACTERS) {
@@ -659,31 +699,33 @@ function getPrompts() {
   return saved;
 }
 
-function savePrompt(characterId, prompt) {
-  const prompts = getPrompts();
+async function savePrompt(characterId, prompt) {
+  const prompts = await getPrompts();
   prompts[characterId] = prompt;
-  return setStorage(STORAGE_KEYS.PROMPTS, prompts);
+  return await setSetting(SETTING_KEYS.PROMPTS, prompts);
 }
 
-function getApiKey() {
-  return getStorage(STORAGE_KEYS.API_KEY, '');
+// API Key
+async function getApiKey() {
+  return await getSetting(SETTING_KEYS.API_KEY, '');
 }
 
-function saveApiKey(key) {
-  return setStorage(STORAGE_KEYS.API_KEY, key);
+async function saveApiKey(key) {
+  return await setSetting(SETTING_KEYS.API_KEY, key);
 }
 
-function getConcealMode() {
-  return getStorage(STORAGE_KEYS.CONCEAL_MODE, false);
+// Conceal Mode
+async function getConcealMode() {
+  return await getSetting(SETTING_KEYS.CONCEAL_MODE, false);
 }
 
-function saveConcealMode(enabled) {
+async function saveConcealMode(enabled) {
   state.concealMode = enabled;
-  return setStorage(STORAGE_KEYS.CONCEAL_MODE, enabled);
+  return await setSetting(SETTING_KEYS.CONCEAL_MODE, enabled);
 }
 
-function initConcealMode() {
-  state.concealMode = getConcealMode();
+async function initConcealMode() {
+  state.concealMode = await getConcealMode();
   updateConcealModeUI();
 }
 
@@ -734,12 +776,12 @@ function resetChatForConcealMode() {
 // Theme Management
 // ============================================
 
-function getTheme() {
-  return getStorage(STORAGE_KEYS.THEME, 'latte');
+async function getTheme() {
+  return await getSetting(SETTING_KEYS.THEME, 'latte');
 }
 
-function saveTheme(theme) {
-  return setStorage(STORAGE_KEYS.THEME, theme);
+async function saveTheme(theme) {
+  return await setSetting(SETTING_KEYS.THEME, theme);
 }
 
 function applyTheme(theme) {
@@ -771,8 +813,8 @@ function applyTheme(theme) {
   }
 }
 
-function initTheme() {
-  const savedTheme = getTheme();
+async function initTheme() {
+  const savedTheme = await getTheme();
   applyTheme(savedTheme);
 }
 
@@ -780,18 +822,22 @@ function initTheme() {
 // Chat Session Management
 // ============================================
 
-function getChatSessions() {
-  return getStorage(STORAGE_KEYS.CHAT_SESSIONS, []);
+async function getChatSessions() {
+  try {
+    const sessions = await db.chatSessions.toArray();
+    return sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+  } catch (e) {
+    console.error('Chat sessions read error:', e);
+    return [];
+  }
 }
 
-function saveChatSession(characterId, messages) {
+async function saveChatSession(characterId, messages) {
   if (!messages || messages.length === 0) return null;
 
-  const sessions = getChatSessions();
-  const characters = getCharacters();
+  const characters = await getCharacters();
   const character = characters[characterId];
 
-  // Generate summary from first user message
   const firstUserMsg = messages.find(m => m.role === 'user');
   const summary = firstUserMsg ? firstUserMsg.content.substring(0, 30) + '...' : '相談';
 
@@ -805,26 +851,35 @@ function saveChatSession(characterId, messages) {
     messages: messages
   };
 
-  sessions.unshift(session); // Add to beginning
+  try {
+    await db.chatSessions.put(session);
 
-  // Keep only last 50 sessions
-  if (sessions.length > 50) {
-    sessions.pop();
+    // Keep only last 50 sessions
+    const allSessions = await db.chatSessions.toArray();
+    if (allSessions.length > 50) {
+      const sorted = allSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+      const toDelete = sorted.slice(50).map(s => s.id);
+      await db.chatSessions.bulkDelete(toDelete);
+    }
+
+    return session.id;
+  } catch (e) {
+    console.error('Chat session save error:', e);
+    return null;
   }
-
-  setStorage(STORAGE_KEYS.CHAT_SESSIONS, sessions);
-  return session.id;
 }
 
-function deleteChatSession(sessionId) {
-  const sessions = getChatSessions();
-  const filtered = sessions.filter(s => s.id !== sessionId);
-  setStorage(STORAGE_KEYS.CHAT_SESSIONS, filtered);
-  renderChatHistory();
+async function deleteChatSession(sessionId) {
+  try {
+    await db.chatSessions.delete(sessionId);
+    await renderChatHistory();
+  } catch (e) {
+    console.error('Chat session delete error:', e);
+  }
 }
 
-function loadChatSession(sessionId) {
-  const sessions = getChatSessions();
+async function loadChatSession(sessionId) {
+  const sessions = await getChatSessions();
   const session = sessions.find(s => s.id === sessionId);
   if (!session) return;
 
@@ -833,9 +888,9 @@ function loadChatSession(sessionId) {
   state.currentSessionId = session.id;
 
   // Update UI
-  renderChatCharacters();
+  await renderChatCharacters();
 
-  const characters = getCharacters();
+  const characters = await getCharacters();
   const character = characters[session.characterId];
   const showIcon = character?.icon && !(state.concealMode && session.characterId === 'irik');
 
@@ -858,11 +913,11 @@ function loadChatSession(sessionId) {
   }).join('');
 }
 
-function renderChatHistory() {
+async function renderChatHistory() {
   const historyContainer = $('#chat-history-list');
   if (!historyContainer) return;
 
-  const sessions = getChatSessions();
+  const sessions = await getChatSessions();
 
   if (sessions.length === 0) {
     historyContainer.innerHTML = '<p class="text-sm text-text-light text-center py-4">まだ履歴がありません</p>';
@@ -916,7 +971,8 @@ function renderChatHistory() {
 // Image Processing
 // ============================================
 
-function processImage(file, maxSize = 800) {
+// 画像を圧縮せず高画質のまま保存（正方形にクロップのみ）
+function processImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -930,16 +986,15 @@ function processImage(file, maxSize = 800) {
         const sx = (img.width - size) / 2;
         const sy = (img.height - size) / 2;
 
-        // Set output size
-        const outputSize = Math.min(size, maxSize);
-        canvas.width = outputSize;
-        canvas.height = outputSize;
+        // 圧縮なし：元のサイズを維持
+        canvas.width = size;
+        canvas.height = size;
 
-        // Draw cropped and resized image
-        ctx.drawImage(img, sx, sy, size, size, 0, 0, outputSize, outputSize);
+        // Draw cropped image (no resize)
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
 
-        // Convert to base64
-        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+        // Convert to base64 PNG (高画質)
+        const base64 = canvas.toDataURL('image/png');
         resolve(base64);
       };
       img.onerror = reject;
@@ -1149,9 +1204,9 @@ async function callGeminiAPI(prompt, imageBase64 = null, modelIndex = 0, retryRo
 }
 
 async function analyzeMealAndGetComment(imageBase64, userText, characterId) {
-  const prompts = getPrompts();
+  const prompts = await getPrompts();
   const characterPrompt = prompts[characterId] || DEFAULT_CHARACTERS[characterId]?.prompt || '';
-  const characters = getCharacters();
+  const characters = await getCharacters();
   const characterName = characters[characterId]?.name || characterId;
 
   // 画像がある場合とない場合でプロンプトを分岐
@@ -1270,7 +1325,7 @@ ${userText || '（メモなし）'}
 }
 
 async function getChatResponse(message, characterId, chatHistory) {
-  const prompts = getPrompts();
+  const prompts = await getPrompts();
 
   // Use conceal prompt for Irik when in conceal mode
   let characterPrompt;
@@ -1280,7 +1335,7 @@ async function getChatResponse(message, characterId, chatHistory) {
     characterPrompt = prompts[characterId] || DEFAULT_CHARACTERS[characterId]?.prompt || '';
   }
 
-  const meals = getMeals();
+  const meals = await getMeals();
 
   // Get recent meals for context
   const recentMeals = Object.entries(meals)
@@ -1350,10 +1405,10 @@ function navigateTo(page) {
 // Calendar
 // ============================================
 
-function renderCalendar() {
+async function renderCalendar() {
   const { currentYear, currentMonth } = state;
   const today = new Date();
-  const meals = getMeals();
+  const meals = await getMeals();
 
   // Update title
   $('#calendar-title').textContent = `${currentYear}年 ${currentMonth + 1}月`;
@@ -1435,11 +1490,11 @@ function renderCalendar() {
 
 /**
  * Get today's lucky menu (same menu for the whole day)
- * Saves to localStorage with date, regenerates on new day
+ * Saves to IndexedDB with date, regenerates on new day
  */
-function getTodayLuckyMenu() {
+async function getTodayLuckyMenu() {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const saved = getStorage(STORAGE_KEYS.LUCKY_MENU);
+  const saved = await getSetting(SETTING_KEYS.LUCKY_MENU);
 
   // If saved data exists and is from today, return it
   if (saved && saved.date === today) {
@@ -1447,7 +1502,7 @@ function getTodayLuckyMenu() {
   }
 
   // Get all unique dishes from meals
-  const meals = getMeals();
+  const meals = await getMeals();
   const allDishes = [];
   Object.values(meals).forEach(meal => {
     if (meal.dishes && Array.isArray(meal.dishes)) {
@@ -1476,8 +1531,8 @@ function getTodayLuckyMenu() {
   const randomIndex = Math.floor(Math.random() * allDishes.length);
   const selectedMenu = allDishes[randomIndex];
 
-  // Save to localStorage
-  setStorage(STORAGE_KEYS.LUCKY_MENU, {
+  // Save to IndexedDB
+  await setSetting(SETTING_KEYS.LUCKY_MENU, {
     date: today,
     menu: selectedMenu
   });
@@ -1488,14 +1543,14 @@ function getTodayLuckyMenu() {
 /**
  * Get random partner and comment (changes every reload)
  */
-function getRandomPartnerComment() {
+async function getRandomPartnerComment() {
   const characterIds = Object.keys(PARTNER_PRESET_COMMENTS);
   const randomCharId = characterIds[Math.floor(Math.random() * characterIds.length)];
   const comments = PARTNER_PRESET_COMMENTS[randomCharId];
   const randomComment = comments[Math.floor(Math.random() * comments.length)];
 
   // Get character info
-  const characters = getCharacters();
+  const characters = await getCharacters();
   const character = characters[randomCharId] || DEFAULT_CHARACTERS[randomCharId];
 
   return {
@@ -1509,9 +1564,9 @@ function getRandomPartnerComment() {
 /**
  * Render Lucky Menu and Partner Comment sections
  */
-function renderLuckyMenuAndPartnerComment() {
+async function renderLuckyMenuAndPartnerComment() {
   // ① Today's Lucky Menu
-  const luckyMenu = getTodayLuckyMenu();
+  const luckyMenu = await getTodayLuckyMenu();
   const luckyMenuContent = $('#lucky-menu-content');
 
   if (luckyMenu) {
@@ -1538,7 +1593,7 @@ function renderLuckyMenuAndPartnerComment() {
 
   partnerSection.classList.remove('hidden');
 
-  const partner = getRandomPartnerComment();
+  const partner = await getRandomPartnerComment();
   const partnerContent = $('#partner-comment-content');
 
   partnerContent.innerHTML = `
@@ -1558,12 +1613,11 @@ function renderLuckyMenuAndPartnerComment() {
 // Detail Page
 // ============================================
 
-function showDetailPage() {
+async function showDetailPage() {
   navigateTo('detail');
 
   const dateKey = state.selectedDate;
-  const meals = getMeals();
-  const meal = meals[dateKey];
+  const meal = await getMeal(dateKey);
   const [year, month, day] = dateKey.split('-').map(Number);
 
   // 曜日を取得
@@ -1721,8 +1775,8 @@ function editDishTag(tagElement) {
 // Menu List
 // ============================================
 
-function renderMenuList() {
-  const meals = getMeals();
+async function renderMenuList() {
+  const meals = await getMeals();
   const category = state.selectedCategory;
 
   // Update tab states
@@ -1824,8 +1878,8 @@ function renderMenuList() {
 // Chat
 // ============================================
 
-function renderChatCharacters() {
-  const characters = getCharacters();
+async function renderChatCharacters() {
+  const characters = await getCharacters();
 
   // In conceal mode, only show Irik
   let displayCharacters = Object.values(characters);
@@ -1851,10 +1905,10 @@ function renderChatCharacters() {
   });
 }
 
-function selectChatCharacter(characterId) {
+async function selectChatCharacter(characterId) {
   // Save current session if exists
   if (state.selectedChatCharacter && state.chatHistory.length > 0) {
-    saveChatSession(state.selectedChatCharacter, state.chatHistory);
+    await saveChatSession(state.selectedChatCharacter, state.chatHistory);
   }
 
   state.selectedChatCharacter = characterId;
@@ -1865,7 +1919,7 @@ function selectChatCharacter(characterId) {
     el.classList.toggle('active', el.dataset.character === characterId);
   });
 
-  const characters = getCharacters();
+  const characters = await getCharacters();
   const character = characters[characterId];
 
   // In conceal mode, hide Irik's icon
@@ -1889,7 +1943,7 @@ function selectChatCharacter(characterId) {
   `;
 
   // Refresh chat history list
-  renderChatHistory();
+  await renderChatHistory();
 }
 
 async function sendChatMessage() {
@@ -1946,9 +2000,9 @@ function appendChatMessage(role, content) {
 // Settings
 // ============================================
 
-function initSettingsPage() {
+async function initSettingsPage() {
   // API Key
-  $('#api-key-input').value = getApiKey();
+  $('#api-key-input').value = await getApiKey();
 
   // Model list
   $('#model-list').innerHTML = GEMINI_MODELS.map((model, i) => `
@@ -1959,11 +2013,11 @@ function initSettingsPage() {
   `).join('');
 
   // Character icons
-  renderCharacterIcons();
+  await renderCharacterIcons();
 
   // Prompt editor
-  const characters = getCharacters();
-  const prompts = getPrompts();
+  const characters = await getCharacters();
+  const prompts = await getPrompts();
 
   $('#prompt-character-select').innerHTML = Object.values(characters).map(char =>
     `<option value="${char.id}">${char.name}</option>`
@@ -1989,8 +2043,8 @@ function initSettingsPage() {
   }
 }
 
-function renderCharacterIcons() {
-  const characters = getCharacters();
+async function renderCharacterIcons() {
+  const characters = await getCharacters();
 
   $('#character-icons-grid').innerHTML = Object.values(characters).map(char => `
     <div class="character-icon-upload" data-character="${char.id}">
@@ -2018,7 +2072,7 @@ function renderCharacterIcons() {
         try {
           const base64 = await processCircularImage(e.target.files[0]);
           const characterId = el.dataset.character;
-          saveCharacterIcon(characterId, base64);
+          await saveCharacterIcon(characterId, base64);
           container.innerHTML = `<img src="${base64}" alt="">`;
           showToast('アイコンを保存しました');
         } catch (error) {
@@ -2083,8 +2137,8 @@ function initEventHandlers() {
   $('#submit-to-ai').addEventListener('click', submitMealToAI);
 
   // Edit/Delete entry
-  $('#edit-entry').addEventListener('click', () => {
-    const meal = getMeals()[state.selectedDate];
+  $('#edit-entry').addEventListener('click', async () => {
+    const meal = await getMeal(state.selectedDate);
     if (meal) {
       showInputMode();
       $('#meal-text').value = meal.memo || '';
@@ -2159,8 +2213,8 @@ function initEventHandlers() {
     showModal(
       'すべてのデータを削除',
       '<p class="text-sm text-accent-pink">この操作は取り消せません。本当にすべてのデータを削除しますか？</p>',
-      () => {
-        localStorage.clear();
+      async () => {
+        await db.delete();
         showToast('すべてのデータを削除しました');
         location.reload();
       },
@@ -2183,7 +2237,7 @@ async function submitMealToAI() {
     return;
   }
 
-  if (!getApiKey()) {
+  if (!(await getApiKey())) {
     showToast('設定画面でAPIキーを入力してください');
     return;
   }
@@ -2212,7 +2266,7 @@ async function submitMealToAI() {
       createdAt: new Date().toISOString()
     };
 
-    saveMeal(state.selectedDate, mealData);
+    await saveMeal(state.selectedDate, mealData);
     showViewMode(mealData);
     showToast('記録を保存しました！');
   } catch (error) {
@@ -2223,11 +2277,12 @@ async function submitMealToAI() {
   }
 }
 
-function exportData() {
+async function exportData() {
   const data = {
-    meals: getMeals(),
-    characters: getCharacters(),
-    prompts: getPrompts(),
+    meals: await getMeals(),
+    characters: await getCharacters(),
+    prompts: await getPrompts(),
+    chatSessions: await getChatSessions(),
     exportedAt: new Date().toISOString()
   };
 
@@ -2246,17 +2301,35 @@ function importData(e) {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = (event) => {
+  reader.onload = async (event) => {
     try {
       const data = JSON.parse(event.target.result);
 
-      if (data.meals) setStorage(STORAGE_KEYS.MEALS, data.meals);
-      if (data.characters) setStorage(STORAGE_KEYS.CHARACTERS, data.characters);
-      if (data.prompts) setStorage(STORAGE_KEYS.PROMPTS, data.prompts);
+      // Import meals
+      if (data.meals) {
+        for (const [dateKey, meal] of Object.entries(data.meals)) {
+          await db.meals.put({ ...meal, dateKey });
+        }
+      }
+      // Import characters
+      if (data.characters) {
+        await setSetting(SETTING_KEYS.CHARACTERS, data.characters);
+      }
+      // Import prompts
+      if (data.prompts) {
+        await setSetting(SETTING_KEYS.PROMPTS, data.prompts);
+      }
+      // Import chat sessions
+      if (data.chatSessions) {
+        for (const session of data.chatSessions) {
+          await db.chatSessions.put(session);
+        }
+      }
 
       showToast('データをインポートしました');
       location.reload();
     } catch (error) {
+      console.error('Import error:', error);
       showToast('ファイルの読み込みに失敗しました');
     }
   };
@@ -2267,9 +2340,9 @@ function importData(e) {
 // Initialize
 // ============================================
 
-function init() {
-  initTheme();
-  initConcealMode();
+async function init() {
+  await initTheme();
+  await initConcealMode();
   initEventHandlers();
   navigateTo('calendar');
 
