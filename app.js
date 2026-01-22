@@ -1041,6 +1041,48 @@ function processCircularImage(file, size = 256) {
   });
 }
 
+// API送信用に画像を圧縮する関数（保存は高画質のまま、API送信時のみ圧縮）
+function compressImageForAPI(imageBase64, maxSize = 800) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 元のサイズが maxSize 以下ならそのまま返す
+      if (img.width <= maxSize && img.height <= maxSize) {
+        resolve(imageBase64);
+        return;
+      }
+
+      // アスペクト比を維持しながらリサイズ
+      let width = img.width;
+      let height = img.height;
+      if (width > height) {
+        if (width > maxSize) {
+          height = Math.round(height * maxSize / width);
+          width = maxSize;
+        }
+      } else {
+        if (height > maxSize) {
+          width = Math.round(width * maxSize / height);
+          height = maxSize;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // JPEG 80% で圧縮
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+      resolve(compressedBase64);
+    };
+    img.onerror = reject;
+    img.src = imageBase64;
+  });
+}
+
 // ============================================
 // Gemini API
 // ============================================
@@ -1055,7 +1097,7 @@ function extractRetryAfterSeconds(errorMessage) {
 }
 
 async function callGeminiAPI(prompt, imageBase64 = null, modelIndex = 0, retryRound = 0) {
-  const apiKey = getApiKey();
+  const apiKey = await getApiKey();
   if (!apiKey) {
     throw new Error('APIキーが設定されていません。設定画面でAPIキーを入力してください。');
   }
@@ -1081,10 +1123,13 @@ async function callGeminiAPI(prompt, imageBase64 = null, modelIndex = 0, retryRo
   const parts = [];
 
   if (imageBase64) {
-    const base64Data = imageBase64.split(',')[1];
+    // API送信用に画像を圧縮
+    const compressedImage = await compressImageForAPI(imageBase64);
+    const base64Data = compressedImage.split(',')[1];
+    const mimeType = compressedImage.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
     parts.push({
       inline_data: {
-        mime_type: 'image/jpeg',
+        mime_type: mimeType,
         data: base64Data
       }
     });
@@ -1100,7 +1145,7 @@ async function callGeminiAPI(prompt, imageBase64 = null, modelIndex = 0, retryRo
       temperature: 0.9,
       topP: 0.95,
       topK: 40,
-      maxOutputTokens: 2048
+      maxOutputTokens: 4096
     }
   };
 
@@ -1628,7 +1673,7 @@ async function showDetailPage() {
   $('#detail-date-title').textContent = `${year}年${month}月${day}日（${dayOfWeek}）`;
 
   if (meal) {
-    showViewMode(meal);
+    await showViewMode(meal);
   } else {
     showInputMode();
   }
@@ -1645,7 +1690,7 @@ function showInputMode() {
   $('#image-placeholder').classList.remove('hidden');
 }
 
-function showViewMode(meal) {
+async function showViewMode(meal) {
   $('#detail-input-mode').classList.add('hidden');
   $('#detail-view-mode').classList.remove('hidden');
 
@@ -1701,7 +1746,7 @@ function showViewMode(meal) {
   $('#view-memo-container').innerHTML = memoHtml;
 
   // Display character comment
-  const characters = getCharacters();
+  const characters = await getCharacters();
   const character = characters[meal.characterId] || DEFAULT_CHARACTERS.nero;
 
   if (character.icon) {
@@ -1720,10 +1765,9 @@ function showViewMode(meal) {
 }
 
 
-function editDishTag(tagElement) {
+async function editDishTag(tagElement) {
   const dateKey = state.selectedDate;
-  const meals = getMeals();
-  const meal = meals[dateKey];
+  const meal = await getMeal(dateKey);
   const dishIndex = parseInt(tagElement.dataset.dishIndex, 10);
 
   // Ensure dishes array exists
@@ -1757,13 +1801,13 @@ function editDishTag(tagElement) {
         </div>
       </div>
     `,
-    () => {
+    async () => {
       meal.dishes[dishIndex].name = $('#edit-dish-name').value;
       meal.dishes[dishIndex].category = $('#edit-dish-category').value;
       // Update dishName for backward compatibility
       meal.dishName = meal.dishes.map(d => d.name).join('、');
-      saveMeal(dateKey, meal);
-      showViewMode(meal);
+      await saveMeal(dateKey, meal);
+      await showViewMode(meal);
       showToast('料理を更新しました');
     },
     '保存'
@@ -2267,7 +2311,7 @@ async function submitMealToAI() {
     };
 
     await saveMeal(state.selectedDate, mealData);
-    showViewMode(mealData);
+    await showViewMode(mealData);
     showToast('記録を保存しました！');
   } catch (error) {
     console.error('Submit error:', error);
