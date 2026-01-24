@@ -529,7 +529,8 @@ textarea::placeholder {
 }
 
 .chat-message.character .bubble {
-  background-color: rgba(229, 208, 204, 0.5);
+  background-color: rgba(229, 208, 204, 0.3);
+  border: 1px solid var(--color-main);
   border-bottom-left-radius: 0.25rem;
   color: var(--color-text);
 }
