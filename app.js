@@ -2000,7 +2000,7 @@ async function sendChatMessage() {
 
   // Add user message
   state.chatHistory.push({ role: 'user', content: message });
-  appendChatMessage('user', message);
+  await appendChatMessage('user', message);
 
   // Get AI response
   showLoading('考え中...');
@@ -2008,7 +2008,7 @@ async function sendChatMessage() {
   try {
     const response = await getChatResponse(message, state.selectedChatCharacter, state.chatHistory);
     state.chatHistory.push({ role: 'assistant', content: response });
-    appendChatMessage('character', response);
+    await appendChatMessage('character', response);
   } catch (error) {
     console.error('Chat error:', error);
     showToast(error.message || 'エラーが発生しました');
@@ -2017,8 +2017,8 @@ async function sendChatMessage() {
   }
 }
 
-function appendChatMessage(role, content) {
-  const characters = getCharacters();
+async function appendChatMessage(role, content) {
+  const characters = await getCharacters();
   const character = characters[state.selectedChatCharacter];
 
   // In conceal mode, hide Irik's icon
@@ -2026,7 +2026,6 @@ function appendChatMessage(role, content) {
 
   const messageHtml = role === 'user'
     ? `<div class="chat-message user">
-        <div class="avatar bg-accent-pink"></div>
         <div class="bubble">${content}</div>
       </div>`
     : `<div class="chat-message character">
